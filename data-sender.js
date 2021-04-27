@@ -1,11 +1,7 @@
 const io = require("socket.io-client");
 const jwt = require("jsonwebtoken");
 const WebSocket = require("ws");
-const axios = require("axios");
-var SHA256 = require("crypto-js/sha256");
-const CryptoJS = require("crypto-js");
-require("dotenv").config();
-import { generateAccessToken } from "./generate-access-token";
+const generateAccessToken = require("./generate-access-token");
 const instrumentData = require("./csvtojson.json");
 const screenedData = require("./newCleanScreenerData.json");
 
@@ -14,31 +10,47 @@ const screenedData = require("./newCleanScreenerData.json");
 const socket = io("http://localhost:7000", { transports: ["websocket"] });
 var KiteTicker = require("kiteconnect").KiteTicker;
 
-const accessToken = generateAccessToken();
+const fetchAccessToken = () => {
+  if (process.env.ACCESS_TOKEN) {
+    return process.env.ACCESS_TOKEN;
+  } else {
+    console.log("helo");
+    generateAccessToken();
+  }
+};
 
-var ticker = new KiteTicker({
-  api_key: process.env.API_KEY,
-  access_token: accessToken,
-});
+const asyncSub = (callback) => {
+  fetchAccessToken();
+  setTimeout(callback, 1000);
+};
 
-ticker.connect();
-console.log("hmm");
-ticker.on("ticks", onTicks);
-ticker.on("connect", subscribe);
-
-function onTicks(ticks) {
-  socket.emit("stock-server", ticks);
-}
-
-function subscribe() {
-  console.log("connected");
-  //var items = Object.values(instrumentData).map((val) => parseInt(val));
-  const items = Object.keys(screenedData).map((scrip) => {
-    return parseInt(instrumentData[scrip]);
+const subFunc = () => {
+  var ticker = new KiteTicker({
+    api_key: process.env.API_KEY,
+    access_token: process.env.ACCESS_TOKEN,
   });
-  ticker.subscribe([256265, 265].concat(items));
-  ticker.setMode(ticker.modeFull, [256265, 265].concat(items));
-}
+
+  ticker.connect();
+  console.log("hmm");
+  ticker.on("ticks", onTicks);
+  ticker.on("connect", subscribe);
+
+  function onTicks(ticks) {
+    socket.emit("stock-server", ticks);
+  }
+
+  function subscribe() {
+    console.log("connected");
+    //var items = Object.values(instrumentData).map((val) => parseInt(val));
+    const items = Object.keys(screenedData).map((scrip) => {
+      return parseInt(instrumentData[scrip]);
+    });
+    ticker.subscribe([256265, 265].concat(items));
+    ticker.setMode(ticker.modeFull, [256265, 265].concat(items));
+  }
+};
+
+asyncSub(subFunc);
 
 // for (let i = 0; i <= 100; i++) {
 //   ((i) => {
