@@ -1,0 +1,28 @@
+{
+  "name": "node-websocket-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon http-server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.0.0",
+    "csv-parse": "^4.15.4",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "kiteconnect": "^3.2.1",
+    "nodemon": "^2.0.7",
+    "papaparse": "^5.3.0",
+    "redis": "^3.1.1",
+    "socket.io": "^3.1.1",
+    "socket.io-client": "^3.1.1",
+    "ws": "^7.4.5"
+  }
+}
