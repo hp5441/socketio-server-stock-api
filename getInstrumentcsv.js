@@ -1,6 +1,7 @@
 const axios = require("axios");
 const FileSystem = require("fs");
 const Papa = require("papaparse");
+require("dotenv").config();
 
 function csvJSON(tempcsv) {
   var lines = tempcsv.split("\n");
@@ -33,12 +34,12 @@ axios
   .get("https://api.kite.trade/instruments", null, {
     headers: {
       "X-Kite-Version": "3",
-      Authorization: "token api_key:57pwvF9CITyrK1euZzqV0CoiXwyfY4oD",
+      Authorization: `token api_key:${process.env.ACCESS_TOKEN}`,
     },
   })
   .then((res) => {
     Papa.parse(res.data).data.forEach((val) => {
-        tempObject[val[2]] = val
+      tempObject[val[2]] = val;
     });
   })
   .then(() => {
