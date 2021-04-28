@@ -2,7 +2,6 @@ require("dotenv").config();
 const axios = require("axios");
 var SHA256 = require("crypto-js/sha256");
 const CryptoJS = require("crypto-js");
-require("dotenv").config();
 
 const api_key = process.env.API_KEY;
 const request_token = process.env.REQUEST_TOKEN;

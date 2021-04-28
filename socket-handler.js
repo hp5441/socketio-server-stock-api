@@ -2,28 +2,29 @@ const jwt = require("jsonwebtoken");
 const { io } = require("socket.io-client");
 const redis = require("redis");
 const axios = require("axios");
+require("dotenv").config();
 
-const instrumentData = require("./tokenToScrip.json");
+const instrumentData = require("./tokenToScrip.json"); //key value data for mapping market code to stock name
 
-const stockPricesCache = {};
+const stockPricesCache = {}; // cache for updating stock data in database every 2 mins 
 
 const client = redis.createClient({
   port: 6379,
   host: "127.0.0.1",
 });
 
-const emitFunction = async (stock, socket, stockData) => {
-  await socket.to(stock).emit(stockData);
-};
+// const emitFunction = async (stock, socket, stockData) => {
+//   await socket.to(stock).emit(stockData);
+// };
 
 const config = {
   headers: {
     "Content-Type": "application/json",
-    "X-CSRFToken":
-      "kkgthZHIFyWLvJ3xOQcxMVy5xIGxRX6VOmV3vXZxF5Mm5BAbUojGOJCMygaoAnej",
+    "X-CSRFToken": `${process.env.CSRF_TOKEN}`,
   },
 };
 
+//post api call which bulk update the stock prices every 2 mins
 const postStocksCall = async () => {
   await axios
     .put(
@@ -41,6 +42,7 @@ const postStocksCall = async () => {
 
 setInterval(postStocksCall, 120000);
 
+//initial authentication
 module.exports = (socket) => {
   socket.on("auth", (credentials) => {
     jwt.verify(credentials, "asdf", (err, decoded) => {
@@ -57,6 +59,7 @@ module.exports = (socket) => {
     console.log(socket.rooms);
   });
 
+  //user subscribing to stocks in the provided list
   socket.on("sub", (stockList) => {
     if (stockList.length > 0) {
       stockList.forEach((stock) => {
@@ -67,6 +70,7 @@ module.exports = (socket) => {
     console.log(socket.rooms);
   });
 
+  //user unsubscribing from stocks in the provided list
   socket.on("unsub", (stockList) => {
     if (stockList.length > 0) {
       console.log(stockList);
@@ -78,6 +82,7 @@ module.exports = (socket) => {
     console.log(socket.rooms);
   });
 
+  //server receiving stock data from single source and broadcasting to users in the specific stock rooms
   socket.on("stock-server", (stocks) => {
     stocks.forEach((stock) => {
       if (
